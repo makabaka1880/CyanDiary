@@ -1,0 +1,7 @@
+.env
+docs/
+node_modules/
+public/
+uploads/
+package-lock.json
+rec.db/

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+	<head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="/style/doc.css"/>
+        <link id="rough-markings-css" rel="stylesheet" type="text/css" href="/style/useRough.css"/>
+        <script src="src/scripts/markdownSupport.mjs" type="module"></script>
+        <script src="src/scripts/enhanceDOM.mjs" type="module"></script>
+        <script src="src/scripts/blink.mjs" type="module"></script>
+        <title>Diary</title>
+	</head>
+	<body>
+        <div class="navbar">
+            <a href="/">/</a>
+            <a href="/visions.html">/vision</a>
+            <a href="/settings.html">/settings</a>
+        </div>
+		<div class='content'>
+			<div class='heading-block'>
+				<h1>Timeline</h1>
+				<p>Visions <a href='/visions.html'>-></a></p>
+			</div>
+			<div class="section-block">
+				<ul id="latest-list">
+					Loading...
+				</ul>
+			</div>
+		</div>
+        <script src="scripts/loadTimeline.js"></script>
+	</body>
+</html>

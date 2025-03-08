@@ -226,6 +226,26 @@ def download_assets():
     except Exception as e:
         console.print(f"[red]Error downloading assets: {str(e)}[/red]")
 
+def create_diary_entry(name):
+    """Create a new diary entry with the specified filename."""
+    entry_path = os.path.join(docs_dir, name, 'entry.md')
+
+    # Check if the entry already exists
+    if os.path.exists(entry_path):
+        console.print(f"[red]Diary entry '{name}' already exists![/red]")
+    else:
+        # Create the directory if it doesn't exist
+        if not os.path.exists(os.path.dirname(entry_path)):
+            os.makedirs(os.path.dirname(entry_path))
+            console.print(f"[blue]Created directory: {os.path.dirname(entry_path)}[/blue]")
+
+        # Create an empty entry file
+        with open(entry_path, "w") as f:
+            f.write("")
+
+        console.print(f"[blue]Diary entry '{name}' created successfully![/blue]")
+        console.print(f"[blue]You can now edit the entry using the 'edit' command.[/blue]")
+
 def repl():
     """Start the REPL loop."""
     while True:
@@ -246,9 +266,19 @@ def repl():
             pull_diary()
         elif user_input.lower() == "edit":
             edit_diary()
-        elif user_input.lower().startswith("filename "):
+        elif user_input.lower() == "ls":
+            os.system(f"ls {docs_dir}");
+        elif user_input.lower().startswith("file "):
             new_filename = user_input.split(" ", 1)[1]
             set_filename(new_filename)
+        elif user_input.lower().startswith("rm "):
+            new_filename = user_input.split(" ", 1)[1]
+            os.system(f"rm -rf {docs_dir}{new_filename}");
+            console.print(f"[red]Removed directory: {docs_dir}{new_filename}[/red]")
+        elif user_input.lower().startswith("new "):
+            new_filename = user_input.split(" ", 1)[1]
+            create_diary_entry(new_filename);
+            
         elif user_input.lower() == "upload":
             upload_assets()
         elif user_input.lower() == "download":

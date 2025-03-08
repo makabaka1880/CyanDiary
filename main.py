@@ -3,14 +3,16 @@ import readline  # For history and autocomplete support
 import os
 import zipfile
 import subprocess
+import time
+import threading
 import requests
 import datetime
 from dotenv import load_dotenv
 from rich.console import Console
-from rich.prompt import Prompt
 
 # Specify the absolute path to the .env file
 dotenv_path = "/Users/makabaka1880/Documents/2025/dev/diary-client/.env"
+NODE_SERVER_URL = "http://localhost:8000"
 
 # Load the .env file
 load_dotenv(dotenv_path=dotenv_path)
@@ -32,6 +34,25 @@ filename = datetime.datetime.today().strftime('%Y-%m-%d')  # Set default to toda
 downloads_dir = "downloads"
 docs_dir = "/Users/makabaka1880/Documents/2025/dev/diary-client/docs/"  # Directory where the files are now stored
 
+# Setup Readline
+readline.set_history_length(1000)
+readline.parse_and_bind('tab: complete')
+# readline.parse_and_bind("stty erase ^H")
+
+
+def register_filename():
+    """Periodically send the current filename to the Node.js server."""
+    global filename
+    while True:
+        try:
+            response = requests.post(f"{NODE_SERVER_URL}/register-filename", json={"filename": filename})
+            if response.status_code != 200:
+                print(f"Failed to register filename: {response.text}")
+        except requests.exceptions.RequestException as e:
+            print(f"Error communicating with server: {e}")
+        
+        time.sleep(10)  # Send update every 10 seconds
+        
 def submit_diary():
     """Submit the diary entry to the API."""
     try:
@@ -246,43 +267,58 @@ def create_diary_entry(name):
         console.print(f"[blue]Diary entry '{name}' created successfully![/blue]")
         console.print(f"[blue]You can now edit the entry using the 'edit' command.[/blue]")
 
+def refresh():
+    requests.post(f"{NODE_SERVER_URL}/refresh");
+
 def repl():
     """Start the REPL loop."""
+    global filename  # Add this line to use the global 'filename'
     while True:
         # Get the user input
-        user_input = Prompt.ask(f"[cyan]diary ({filename})[/cyan] >>>").strip()
+        user_input = input(f"[cyan]diary ({filename})[/cyan] > ")
 
         # Exit condition
         if user_input.lower() == 'exit':
+            refresh()
             console.print("[yellow]Exiting...[/yellow]")
             break
-
         # Handle different commands
         if user_input.lower() == "submit":
             submit_diary()
+            refresh()
         elif user_input.lower() == "update":
             update_diary()
+            refresh()
         elif user_input.lower() == "pull":
             pull_diary()
+            refresh()
         elif user_input.lower() == "edit":
             edit_diary()
+            refresh()
         elif user_input.lower() == "ls":
-            os.system(f"ls {docs_dir}");
+            os.system(f"ls {docs_dir}")
         elif user_input.lower().startswith("file "):
             new_filename = user_input.split(" ", 1)[1]
             set_filename(new_filename)
+            refresh()
         elif user_input.lower().startswith("rm "):
             new_filename = user_input.split(" ", 1)[1]
-            os.system(f"rm -rf {docs_dir}{new_filename}");
+            os.system(f"rm -rf {docs_dir}{new_filename}")
             console.print(f"[red]Removed directory: {docs_dir}{new_filename}[/red]")
+            refresh()
         elif user_input.lower().startswith("new "):
             new_filename = user_input.split(" ", 1)[1]
-            create_diary_entry(new_filename);
-            
+            create_diary_entry(new_filename)
+            filename = new_filename
+            refresh()
+        elif user_input.lower() == "refresh":
+            refresh()
         elif user_input.lower() == "upload":
             upload_assets()
+            refresh()
         elif user_input.lower() == "download":
             download_assets()
+            refresh()
         else:
             console.print(f"[red]Unknown command: {user_input}[/red]")
 
@@ -293,4 +329,5 @@ if __name__ == "__main__":
     if not os.path.exists(docs_dir):
         os.makedirs(docs_dir)
         print(f"[green]Created directory: {docs_dir}[/green]")
+    threading.Thread(target=register_filename, daemon=True).start()
     repl()

@@ -1,3 +1,5 @@
 .env
 docs/
 downloads/
+preview/package-lock.json/
+preview/node_modules/
